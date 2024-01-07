@@ -66,8 +66,20 @@ type ETOPMRequest struct {
 	EPT string `json:"EPT,omitempty"`
 }
 
-func NewETOPMRequest(webNo string, passCode string, receiverName string, receiverID string, receiverTel string, receiverEmail string, orderNo string, ECPlatform string, totalPrice string, orderInfo string, note1 string, note2 string, payType string, atmRespost string, deadLine string, payEN string, codeType string, EPT string) *ETOPMRequest {
-	return &ETOPMRequest{WebNo: webNo, PassCode: passCode, ReceiverName: receiverName, ReceiverID: receiverID, ReceiverTel: receiverTel, ReceiverEmail: receiverEmail, OrderNo: orderNo, ECPlatform: ECPlatform, TotalPrice: totalPrice, OrderInfo: orderInfo, Note1: note1, Note2: note2, PayType: payType, AtmRespost: atmRespost, DeadLine: deadLine, PayEN: payEN, CodeType: codeType, EPT: EPT}
+func NewETOPMRequest(webNo string, passCode string, receiverName string, receiverID string, receiverTel string, receiverEmail string, orderNo string, ECPlatform string, totalPrice string, orderInfo string, note1 string, note2 string, payType string, atmRespost string, deadLine string, installment string, payDay string, CIFID string, CIFPW string, CIFID_SN string, payEN string, codeType string, EPT string) *ETOPMRequest {
+	return &ETOPMRequest{WebNo: webNo, PassCode: passCode, ReceiverName: receiverName, ReceiverID: receiverID, ReceiverTel: receiverTel, ReceiverEmail: receiverEmail, OrderNo: orderNo, ECPlatform: ECPlatform, TotalPrice: totalPrice, OrderInfo: orderInfo, Note1: note1, Note2: note2, PayType: payType, AtmRespost: atmRespost, DeadLine: deadLine, Installment: installment, PayDay: payDay, CIFID: CIFID, CIFPW: CIFPW, CIFID_SN: CIFID_SN, PayEN: payEN, CodeType: codeType, EPT: EPT}
+}
+
+func NewETOPMCardRequest(webNo string, passCode string, receiverName string, receiverID string, receiverTel string, receiverEmail string, orderNo string, ECPlatform string, totalPrice string, orderInfo string, note1 string, note2 string, payEN string, EPT string) *ETOPMRequest {
+	return &ETOPMRequest{WebNo: webNo, PassCode: passCode, ReceiverName: receiverName, ReceiverID: receiverID, ReceiverTel: receiverTel, ReceiverEmail: receiverEmail, OrderNo: orderNo, ECPlatform: ECPlatform, TotalPrice: totalPrice, OrderInfo: orderInfo, Note1: note1, Note2: note2, PayType: "01", PayEN: payEN, EPT: EPT}
+}
+
+func NewETOPMATMRequest(webNo string, passCode string, receiverName string, receiverID string, receiverTel string, receiverEmail string, orderNo string, ECPlatform string, totalPrice string, orderInfo string, note1 string, note2 string, payType string, atmRespost string, deadLine string, payEN string, EPT string) *ETOPMRequest {
+	return &ETOPMRequest{WebNo: webNo, PassCode: passCode, ReceiverName: receiverName, ReceiverID: receiverID, ReceiverTel: receiverTel, ReceiverEmail: receiverEmail, OrderNo: orderNo, ECPlatform: ECPlatform, TotalPrice: totalPrice, OrderInfo: orderInfo, Note1: note1, Note2: note2, PayType: "03", AtmRespost: atmRespost, DeadLine: deadLine, PayEN: payEN, EPT: EPT}
+}
+
+func NewETOPMInstallmentRequest(webNo string, passCode string, receiverName string, receiverID string, receiverTel string, receiverEmail string, orderNo string, ECPlatform string, totalPrice string, orderInfo string, note1 string, note2 string, installment string, payDay string, CIFID string, CIFPW string, CIFID_SN string, payEN string, EPT string) *ETOPMRequest {
+	return &ETOPMRequest{WebNo: webNo, PassCode: passCode, ReceiverName: receiverName, ReceiverID: receiverID, ReceiverTel: receiverTel, ReceiverEmail: receiverEmail, OrderNo: orderNo, ECPlatform: ECPlatform, TotalPrice: totalPrice, OrderInfo: orderInfo, Note1: note1, Note2: note2, PayType: "01", Installment: installment, PayDay: payDay, CIFID: CIFID, CIFPW: CIFPW, CIFID_SN: CIFID_SN, PayEN: payEN, EPT: EPT}
 }
 
 func (c *Client) NewETOPM() *ETOPMRequestCall {
