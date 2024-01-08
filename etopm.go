@@ -164,8 +164,16 @@ type ETOPMCardResponse struct {
 	PanNo4 string `json:"pan_no4,omitempty"`
 	//是否國外卡
 	CardForeign string `json:"Card_Foreign,omitempty"`
-	//信用卡分期期數
+	//信用卡分期期數 預備繳款期數
 	Installment string `json:"installment,omitempty"`
+	//授權日
+	PayDay string `json:"PayDay,omitempty"`
+	//UserID
+	CIFID string `json:"CIFID,omitempty"`
+	//UserPW
+	CIFPW string `json:"CIFPW,omitempty"`
+	//SN(序號)
+	CIFID_SN string `json:"CIFID_SN,omitempty"`
 }
 
 func NewETOPMCardResponse() *ETOPMCardResponse {
@@ -186,7 +194,10 @@ func (e *ETOPMCardResponse) Decode() {
 	e.PanNo4, _ = url.QueryUnescape(e.PanNo4)
 	e.CardForeign, _ = url.QueryUnescape(e.CardForeign)
 	e.Installment, _ = url.QueryUnescape(e.Installment)
-
+	e.PayDay, _ = url.QueryUnescape(e.PayDay)
+	e.CIFID, _ = url.QueryUnescape(e.CIFID)
+	e.CIFPW, _ = url.QueryUnescape(e.CIFPW)
+	e.CIFID_SN, _ = url.QueryUnescape(e.CIFID_SN)
 }
 
 type ETOPMATMResponse struct {
