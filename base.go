@@ -38,11 +38,11 @@ func GenSonyflake() string {
 	return strconv.FormatUint(id, 16)
 }
 
-var OrderTemplateText = `<form id="form1" action="{{.Action}}" method="POST">
+var OrderTemplateText = `<form id="order_form" action="{{.Action}}" method="POST">
 {{range $key,$element := .Values}}    <input type="hidden" name="{{$key}}" id="{{$key}}" value="{{$element}}" />
 {{end -}}
 </form>
-<script>document.querySelector("#form1").submit();</script>`
+<script>document.querySelector("#order_form").submit();</script>`
 
 type OrderTmplArgs struct {
 	Values map[string]string
