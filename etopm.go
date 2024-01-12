@@ -77,8 +77,9 @@ func NewETOPMCardRequest(webNo string, passCode string, receiverName string, rec
 func NewETOPMATMRequest(webNo string, passCode string, receiverName string, receiverID string, receiverTel string, receiverEmail string, orderNo string, ECPlatform string, totalPrice string, orderInfo string, note1 string, note2 string, payType string, atmRespost string, deadLine string, payEN string, EPT string) *ETOPMRequest {
 	return &ETOPMRequest{WebNo: webNo, PassCode: passCode, ReceiverName: receiverName, ReceiverID: receiverID, ReceiverTel: receiverTel, ReceiverEmail: receiverEmail, OrderNo: orderNo, ECPlatform: ECPlatform, TotalPrice: totalPrice, OrderInfo: orderInfo, Note1: note1, Note2: note2, PayType: "03", AtmRespost: atmRespost, DeadLine: deadLine, PayEN: payEN, EPT: EPT}
 }
+
 func NewETOPMCardInstallmentRequest(webNo string, passCode string, receiverName string, receiverID string, receiverTel string, receiverEmail string, orderNo string, ECPlatform string, totalPrice string, orderInfo string, note1 string, note2 string, payEN string, EPT string) *ETOPMRequest {
-	return &ETOPMRequest{WebNo: webNo, PassCode: passCode, ReceiverName: receiverName, ReceiverID: receiverID, ReceiverTel: receiverTel, ReceiverEmail: receiverEmail, OrderNo: orderNo, ECPlatform: ECPlatform, TotalPrice: totalPrice, OrderInfo: orderInfo, Note1: note1, Note2: note2, PayType: "09", PayEN: payEN, EPT: EPT}
+	return &ETOPMRequest{WebNo: webNo, PassCode: passCode, ReceiverName: receiverName, ReceiverID: receiverID, ReceiverTel: receiverTel, ReceiverEmail: receiverEmail, OrderNo: orderNo, ECPlatform: ECPlatform, TotalPrice: totalPrice, OrderInfo: orderInfo, Note1: note1, Note2: note2, PayType: "11", PayEN: payEN, EPT: EPT}
 }
 
 func NewETOPMSubscriptionRequest(webNo string, passCode string, receiverName string, receiverID string, receiverTel string, receiverEmail string, orderNo string, ECPlatform string, totalPrice string, orderInfo string, note1 string, note2 string, installment string, payDay string, CIFID string, CIFPW string, CIFID_SN string, payEN string, EPT string) *ETOPMRequest {
