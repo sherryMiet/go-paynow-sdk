@@ -263,7 +263,7 @@ func (c *CreateRefundRequestCall) Do() (response *string, err error) {
 	JStr := string(jByte)
 	PostData := make(map[string]string)
 	PostData["OP"] = " R_gp"
-	JStr = url.QueryEscape(Aes256(JStr, HASHKEY, HASHIV))
+	JStr = url.QueryEscape(Aes256(JStr, c.Client.EncryptionKey, c.Client.EncryptionIV))
 	c.CreateRefundRequest.JStr2 = string(JStr[len(JStr)/2:])
 	c.CreateRefundRequest.JStr1 = string(JStr[:len(JStr)/2-1])
 	PostData["JStr1"] = c.CreateRefundRequest.JStr1
@@ -286,7 +286,7 @@ func (c *CreateRefundRequestCall) DoTest() (response *string, err error) {
 	JStr := string(jByte)
 	PostData := make(map[string]string)
 	PostData["OP"] = " R_gp"
-	JStr = url.QueryEscape(Aes256(JStr, HASHKEY, HASHIV))
+	JStr = url.QueryEscape(Aes256(JStr, c.Client.EncryptionKey, c.Client.EncryptionIV))
 	c.CreateRefundRequest.JStr2 = string(JStr[len(JStr)/2:])
 	c.CreateRefundRequest.JStr1 = string(JStr[:len(JStr)/2-1])
 	PostData["JStr1"] = c.CreateRefundRequest.JStr1
