@@ -63,7 +63,7 @@ func GenerateAutoSubmitHtmlForm(params map[string]string, targetUrl string) stri
 	}
 	return result.String()
 }
-func SendNewebPayRequest(postData *map[string]string, URL string) ([]byte, error) {
+func SendPaynowRequest(postData *map[string]string, URL string) ([]byte, error) {
 	body := new(bytes.Buffer)
 	w := multipart.NewWriter(body)
 	for k, v := range *postData {
