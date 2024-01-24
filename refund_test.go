@@ -181,7 +181,7 @@ func TestGetCheckCodeGKRequestCall_DoTest(t *testing.T) {
 					MemCid:   "28229955",
 					PassCode: "",
 					TimeStr:  "",
-					CheckNum: "33528305",
+					CheckNum: "",
 				},
 				GetCheckCodeRequest: &GetCheckCodeRequest{},
 			},

@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -41,35 +42,37 @@ type CreateRefundRequest struct {
 	TimeStr string `json:"TimeStr"`
 	//隨機檢核碼
 	CheckNum string `json:"CheckNum"`
+	//商家自訂編號
+	OrderNo string
 }
 
 type CreateRefundJson struct {
 	//發起退款方
-	MemType string
+	MemType string `json:"mem_type,omitempty"`
 	//PayNow 訂單編號
-	BuySafeNo string
+	BuySafeNo string `json:"buysafeno,omitempty"`
 	//商家帳號
-	MemCid string
+	MemCid string `json:"mem_cid,omitempty"`
 	//交易驗證碼
-	PassCode string
+	PassCode string `json:"passcode,omitempty"`
 	//退款入帳帳號
-	MemBankAccNo string
+	MemBankAccNo string `json:"mem_bankaccno,omitempty"`
 	//退款銀行代碼
-	AccountBankNo string
+	AccountBankNo string `json:"accountbankno,omitempty"`
 	//退款銀行名稱
-	MemBankAccount string
+	MemBankAccount string `json:"mem_bankaccount,omitempty"`
 	//退款原因
-	RefundValue string
+	RefundValue string `json:"refundvalue,omitempty"`
 	//發起方退款類型
-	RefundMode string
+	RefundMode string `json:"refundmode,omitempty"`
 	//消費者帳號
-	BuyerId string
+	BuyerId string `json:"buyerid,omitempty"`
 	//消費者姓名
-	BuyerName string
+	BuyerName string `json:"buyername,omitempty"`
 	//消費者 Email
-	BuyerEmail string
+	BuyerEmail string `json:"buyeremail,omitempty"`
 	//退款金額
-	RefundPrice string
+	RefundPrice string `json:"refundprice,omitempty"`
 }
 
 type GetCheckCodeRequest struct {
@@ -141,28 +144,59 @@ type CreateRefundRequestCall struct {
 	CreateRefundJson    *CreateRefundJson
 }
 
+func (c *Client) NewCreateRefundRequest() *CreateRefundRequestCall {
+	c.TimeStr = GetTimeStr()
+	GP := NewGetGP()
+	GP.GetCheckCodeJsonGPRequest.MemCid = c.Account
+	GP.GetCheckCodeJsonGPRequest.TimeStr = c.TimeStr
+	GP.GetCheckCodeJsonGPRequest.GetValues()
+	GPRes, _ := GP.DoTest()
+	c.CheckNum = GPRes.CheckNum
+	GK := NewGetGK()
+	GK.GetCheckCodeJsonGKRequest.MemCid = c.Account
+	GK.GetCheckCodeJsonGKRequest.TimeStr = c.TimeStr
+	GK.GetCheckCodeJsonGKRequest.CheckNum = c.CheckNum
+	GK.GetCheckCodeJsonGKRequest.GetValues()
+	GKRes, _ := GK.DoTest()
+	c.EncryptionKey = GKRes.EncryptionKey
+	c.EncryptionIV = GKRes.EncryptionIV
+
+	return &CreateRefundRequestCall{
+		Client:              c,
+		CreateRefundRequest: &CreateRefundRequest{},
+		CreateRefundJson:    &CreateRefundJson{},
+	}
+}
+
+func (c *CreateRefundRequestCall) SetValues(OrderNo, BuySafeNo, RefundValue, RefundPrice string) *CreateRefundRequestCall {
+	c.CreateRefundJson.BuySafeNo = BuySafeNo
+	c.CreateRefundJson.RefundValue = RefundValue
+	c.CreateRefundJson.RefundPrice = RefundPrice
+	c.CreateRefundRequest.OrderNo = OrderNo
+	c.CreateRefundJson.PassCode = SHA1_Encrypt(c.Client.Account + c.CreateRefundRequest.OrderNo + c.CreateRefundJson.RefundPrice + c.Client.Password)
+	c.CreateRefundJson.MemType = "2"
+	c.CreateRefundJson.RefundMode = "1"
+	c.CreateRefundJson.MemCid = c.Client.Account
+	c.CreateRefundRequest.MemCid = c.Client.Account
+	c.CreateRefundRequest.TimeStr = c.Client.TimeStr
+	c.CreateRefundRequest.CheckNum = c.Client.CheckNum
+
+	//c.GetValues()
+	return c
+}
+
 func (g *GetCheckCodeJsonGPRequest) GetValues() {
-	g.TimeStr = GetTimeStr()
+	//g.TimeStr = GetTimeStr()
 	PowerCheck, _ := GetPowerCheck(g.MemCid, g.TimeStr, true)
 	g.PassCode, _ = GetPassCode(g.MemCid, PowerCheck, false, "")
 	g.PassCode = strings.ToUpper(g.PassCode)
 }
 
 func (g *GetCheckCodeJsonGKRequest) GetValues() {
-	g.TimeStr = GetTimeStr()
+
 	PowerCheck, _ := GetPowerCheck(g.MemCid, g.TimeStr, false)
 	g.PassCode, _ = GetPassCode(g.MemCid, PowerCheck, true, g.CheckNum)
 	g.PassCode = strings.ToUpper(g.PassCode)
-}
-
-func (g *CreateRefundRequest) GetValues() {
-	g.TimeStr = GetTimeStr()
-}
-
-func (c *CreateRefundRequest) Encode() {
-	c.MemCid = url.QueryEscape(c.MemCid)
-	c.TimeStr = url.QueryEscape(c.TimeStr)
-
 }
 
 func (g *GetCheckCodeGPRequestCall) Do() (response *GetCheckCodeJsonGPResponse, err error) {
@@ -258,7 +292,6 @@ func (g *GetCheckCodeGKRequestCall) DoTest() (response *GetCheckCodeJsonGKRespon
 }
 
 func (c *CreateRefundRequestCall) Do() (response *string, err error) {
-	c.CreateRefundRequest.GetValues()
 	jByte, _ := json.Marshal(c.CreateRefundJson)
 	JStr := string(jByte)
 	PostData := make(map[string]string)
@@ -275,33 +308,60 @@ func (c *CreateRefundRequestCall) Do() (response *string, err error) {
 		return nil, err
 	}
 	resStrEncode, _ := url.QueryUnescape(string(body))
-	resByte := []byte(DecodeAes256(resStrEncode, HASHKEY, HASHIV))
+	resByte := []byte(DecodeAes256(resStrEncode, c.Client.EncryptionKey, c.Client.EncryptionIV))
 	*response = string(resByte)
 	fmt.Println(*response)
 	return response, nil
 }
-func (c *CreateRefundRequestCall) DoTest() (response *string, err error) {
-	c.CreateRefundRequest.GetValues()
+
+func (c *CreateRefundRequestCall) DoTest() (response string, err error) {
 	jByte, _ := json.Marshal(c.CreateRefundJson)
 	JStr := string(jByte)
+	JStr = Aes256(JStr, c.Client.EncryptionKey, c.Client.EncryptionIV)
+	c.CreateRefundRequest.JStr1 = url.QueryEscape(string(JStr[:len(JStr)/2]))
+	c.CreateRefundRequest.JStr2 = url.QueryEscape(string(JStr[len(JStr)/2:]))
+
 	PostData := make(map[string]string)
-	PostData["OP"] = " R_gp"
-	JStr = url.QueryEscape(Aes256(JStr, c.Client.EncryptionKey, c.Client.EncryptionIV))
-	c.CreateRefundRequest.JStr2 = string(JStr[len(JStr)/2:])
-	c.CreateRefundRequest.JStr1 = string(JStr[:len(JStr)/2-1])
+	PostData["OP"] = "R_gp"
 	PostData["JStr1"] = c.CreateRefundRequest.JStr1
 	PostData["JStr2"] = c.CreateRefundRequest.JStr2
-	fmt.Println(PostData["JStr1"])
-	fmt.Println(PostData["JStr2"])
+	PostData["mem_cid"] = c.CreateRefundRequest.MemCid
+	PostData["TimeStr"] = c.CreateRefundRequest.TimeStr
+	PostData["CheckNum"] = c.CreateRefundRequest.CheckNum
+
 	body, err := SendPaynowRequest(&PostData, TestRefundURL)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	resStrEncode, _ := url.QueryUnescape(string(body))
-	resByte := []byte(DecodeAes256(resStrEncode, HASHKEY, HASHIV))
-	*response = string(resByte)
-	fmt.Println(*response)
+	resByte := []byte(DecodeAes256(resStrEncode, c.Client.EncryptionKey, c.Client.EncryptionIV))
+	response = string(resByte)
+	fmt.Println(response)
 	return response, nil
+}
+
+func NewGetGP() *GetCheckCodeGPRequestCall {
+	return &GetCheckCodeGPRequestCall{
+		Client:                    &Client{},
+		GetCheckCodeJsonGPRequest: &GetCheckCodeJsonGPRequest{},
+		GetCheckCodeRequest:       &GetCheckCodeRequest{},
+	}
+}
+
+func NewGetGK() *GetCheckCodeGKRequestCall {
+	return &GetCheckCodeGKRequestCall{
+		Client:                    &Client{},
+		GetCheckCodeJsonGKRequest: &GetCheckCodeJsonGKRequest{},
+		GetCheckCodeRequest:       &GetCheckCodeRequest{},
+	}
+}
+
+func NewCreateRefund() *CreateRefundRequestCall {
+	return &CreateRefundRequestCall{
+		Client:              &Client{},
+		CreateRefundJson:    &CreateRefundJson{},
+		CreateRefundRequest: &CreateRefundRequest{},
+	}
 }
 
 func SendRequest(postData *map[string]string, URL string) ([]byte, error) {
@@ -395,6 +455,16 @@ func SHA256_Encrypt(val string) string {
 	checkMac := strings.ToUpper(hex.EncodeToString(sum[:]))
 	return checkMac
 }
+
+func SHA1_Encrypt(val string) string {
+	h := sha1.New()
+	h.Write([]byte(val))
+	result := h.Sum(nil)
+
+	return strings.ToUpper(hex.EncodeToString(result))
+
+}
+
 func SHA256_HMACSHA256(val, key string) string {
 	_, err := rand.Read([]byte(key))
 	if err != nil {

@@ -5,6 +5,8 @@ type Client struct {
 	Account       string
 	EncryptionKey string
 	EncryptionIV  string
+	CheckNum      string
+	TimeStr       string
 }
 
 func NewClient() (c *Client) {
