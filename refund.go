@@ -150,14 +150,14 @@ func (c *Client) NewCreateRefundRequest() *CreateRefundRequestCall {
 	GP.GetCheckCodeJsonGPRequest.MemCid = c.Account
 	GP.GetCheckCodeJsonGPRequest.TimeStr = c.TimeStr
 	GP.GetCheckCodeJsonGPRequest.GetValues()
-	GPRes, _ := GP.DoTest()
+	GPRes, _ := GP.Do()
 	c.CheckNum = GPRes.CheckNum
 	GK := NewGetGK()
 	GK.GetCheckCodeJsonGKRequest.MemCid = c.Account
 	GK.GetCheckCodeJsonGKRequest.TimeStr = c.TimeStr
 	GK.GetCheckCodeJsonGKRequest.CheckNum = c.CheckNum
 	GK.GetCheckCodeJsonGKRequest.GetValues()
-	GKRes, _ := GK.DoTest()
+	GKRes, _ := GK.Do()
 	c.EncryptionKey = GKRes.EncryptionKey
 	c.EncryptionIV = GKRes.EncryptionIV
 
@@ -291,26 +291,29 @@ func (g *GetCheckCodeGKRequestCall) DoTest() (response *GetCheckCodeJsonGKRespon
 	return response, nil
 }
 
-func (c *CreateRefundRequestCall) Do() (response *string, err error) {
+func (c *CreateRefundRequestCall) Do() (response string, err error) {
 	jByte, _ := json.Marshal(c.CreateRefundJson)
 	JStr := string(jByte)
+	JStr = Aes256(JStr, c.Client.EncryptionKey, c.Client.EncryptionIV)
+	c.CreateRefundRequest.JStr1 = url.QueryEscape(string(JStr[:len(JStr)/2]))
+	c.CreateRefundRequest.JStr2 = url.QueryEscape(string(JStr[len(JStr)/2:]))
+
 	PostData := make(map[string]string)
-	PostData["OP"] = " R_gp"
-	JStr = url.QueryEscape(Aes256(JStr, c.Client.EncryptionKey, c.Client.EncryptionIV))
-	c.CreateRefundRequest.JStr2 = string(JStr[len(JStr)/2:])
-	c.CreateRefundRequest.JStr1 = string(JStr[:len(JStr)/2-1])
+	PostData["OP"] = "R_gp"
 	PostData["JStr1"] = c.CreateRefundRequest.JStr1
 	PostData["JStr2"] = c.CreateRefundRequest.JStr2
-	fmt.Println(PostData["JStr1"])
-	fmt.Println(PostData["JStr2"])
+	PostData["mem_cid"] = c.CreateRefundRequest.MemCid
+	PostData["TimeStr"] = c.CreateRefundRequest.TimeStr
+	PostData["CheckNum"] = c.CreateRefundRequest.CheckNum
+
 	body, err := SendPaynowRequest(&PostData, RefundURL)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	resStrEncode, _ := url.QueryUnescape(string(body))
 	resByte := []byte(DecodeAes256(resStrEncode, c.Client.EncryptionKey, c.Client.EncryptionIV))
-	*response = string(resByte)
-	fmt.Println(*response)
+	response = string(resByte)
+	fmt.Println(response)
 	return response, nil
 }
 
