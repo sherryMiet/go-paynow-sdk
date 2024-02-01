@@ -150,14 +150,20 @@ func (c *Client) NewCreateRefundRequest() *CreateRefundRequestCall {
 	GP.GetCheckCodeJsonGPRequest.MemCid = c.Account
 	GP.GetCheckCodeJsonGPRequest.TimeStr = c.TimeStr
 	GP.GetCheckCodeJsonGPRequest.GetValues()
-	GPRes, _ := GP.Do()
+	GPRes, err := GP.Do()
+	if err != nil {
+		return nil
+	}
 	c.CheckNum = GPRes.CheckNum
 	GK := NewGetGK()
 	GK.GetCheckCodeJsonGKRequest.MemCid = c.Account
 	GK.GetCheckCodeJsonGKRequest.TimeStr = c.TimeStr
 	GK.GetCheckCodeJsonGKRequest.CheckNum = c.CheckNum
 	GK.GetCheckCodeJsonGKRequest.GetValues()
-	GKRes, _ := GK.Do()
+	GKRes, err := GK.Do()
+	if err != nil {
+		return nil
+	}
 	c.EncryptionKey = GKRes.EncryptionKey
 	c.EncryptionIV = GKRes.EncryptionIV
 
@@ -207,7 +213,7 @@ func (g *GetCheckCodeGPRequestCall) Do() (response *GetCheckCodeJsonGPResponse, 
 	PostData["OP"] = "GP"
 	PostData["JStr"] = Aes256(g.GetCheckCodeRequest.JStr, HASHKEY, HASHIV)
 	fmt.Println(PostData["JStr"])
-	body, err := SendPaynowRequest(&PostData, TestRefundURL)
+	body, err := SendPaynowRequest(&PostData, RefundURL)
 	if err != nil {
 		return nil, err
 	}
